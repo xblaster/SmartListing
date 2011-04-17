@@ -31,7 +31,17 @@ class Lister(object):
 				entry.prettyPrint()
 		
 	
-	def listing(self,directory, subdirname = ""):
+	def listing(self, directory, subdirname =""):
+		dirToWalk = os.path.join(directory,subdirname)
+		for filename in os.listdir(dirToWalk):
+			if os.path.isfile(os.path.join(dirToWalk,filename)):
+				if "avi" in filename:
+					dirE = DirEntry(subdirname, filename)
+					self.addDirEntryIn(subdirname, dirE)
+			if os.path.isdir(os.path.join(dirToWalk,filename)):
+				self.listing(directory, os.path.join(subdirname,filename))
+	
+	def listing2(self,directory, subdirname = ""):
 		subdirname = subdirname.replace(directory,"")
 		print "listing "+directory+" -- "+subdirname
 		dirToWalk = os.path.join(directory,subdirname)
@@ -69,7 +79,7 @@ def main():
 		print "wrong argument size"
 	for arg in args:
 		lister = Lister(arg)
-		#lister.prettyPrint()
+		lister.prettyPrint()
 
 #launch the program		
 if __name__ == "__main__":
