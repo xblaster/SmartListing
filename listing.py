@@ -28,9 +28,12 @@ class HTMLGenerator(object):
 		<head>
 		<meta charset="utf-8">
 		</head>''')
+		
+		#sort entries
 		self.filesDict.keys().sort()
-		print self.filesDict.keys().sort()
-		for category in self.filesDict.keys():
+		items = self.filesDict.keys()
+		items.sort()
+		for category in items:
 			f.write("<h1>"+category+"</h1>")
 			for entry in self.filesDict[category]:
 				f.write(entry.toString()+"<br/>")
@@ -47,7 +50,6 @@ class Lister(object):
 		self.listing(dir)
 		
 	def addDirEntryIn(self, category, dirEntry):
-		category = str(category)
 		if not category in self.files.keys():
 			self.files[category] = list()
 		self.files[category].append(dirEntry)
