@@ -2,25 +2,43 @@
 import os
 import sys
 import getopt
+import re
 
 """ Directory entry object
 """
 class DirEntry(object):
+	
+	toRemove = ["ma","me","mes","l'"]
+	
 	def __init__(self, dirname, filename):
+		
 		self.dirname = dirname
 		self.filename = self.sanitizeFileName(filename)
+		self.sortedName = self.transformToSortedName(self.filename)
 	
 	def sanitizeFileName(self,filename):
 		return filename.replace(".avi","")
-		
+	
+	def transformToSortedName(self, filename):
+		res = filename
+		for toReplace in  DirEntry.toRemove:
+			regexp= re.compile(toReplace+" ", re.IGNORECASE)
+			res = regexp.sub("",res)
+		return res
+	
+	def getSortedName(self):
+		return self.sortedName.capitalize()	
 	
 	def toString(self):
-		return self.filename	
+		return self.filename.capitalize()	
 
 class HTMLGenerator(object):
 	def __init__(self, filesDict):
 		self.filesDict = filesDict
-		
+	
+	def getSectionString(self,section):
+		return "<h2>"+section+"</h2>"
+	
 	def genHTML(self):
 		f = open('listing.html', 'w')
 		f.write('''<html>
@@ -33,9 +51,21 @@ class HTMLGenerator(object):
 		self.filesDict.keys().sort()
 		items = self.filesDict.keys()
 		items.sort()
+		
+		section =""
+		
 		for category in items:
 			f.write("<h1>"+category+"</h1>")
-			for entry in self.filesDict[category]:
+			
+			sortedList = sorted(self.filesDict[category], key=lambda entry: entry.getSortedName()) 
+			
+			for entry in sortedList:
+				entryString = entry.getSortedName()
+				
+				if (entryString[0]!= section):
+					section = entryString[0]
+					f.write(self.getSectionString(entryString[0]))
+				
 				f.write(entry.toString()+"<br/>")
 		
 		f.write('''</body>
