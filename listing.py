@@ -8,10 +8,37 @@ import getopt
 class DirEntry(object):
 	def __init__(self, dirname, filename):
 		self.dirname = dirname
-		self.filename = filename
+		self.filename = self.sanitizeFileName(filename)
 	
-	def prettyPrint(self):
-		print self.dirname + " @@ "+ self.filename	
+	def sanitizeFileName(self,filename):
+		return filename.replace(".avi","")
+		
+	
+	def toString(self):
+		return self.filename	
+
+class HTMLGenerator(object):
+	def __init__(self, filesDict):
+		self.filesDict = filesDict
+		
+	def genHTML(self):
+		f = open('listing.html', 'w')
+		f.write('''<html>
+		<body>
+		<head>
+		<meta charset="utf-8">
+		</head>''')
+		self.filesDict.keys().sort()
+		print self.filesDict.keys().sort()
+		for category in self.filesDict.keys():
+			f.write("<h1>"+category+"</h1>")
+			for entry in self.filesDict[category]:
+				f.write(entry.toString()+"<br/>")
+		
+		f.write('''</body>
+		</html>
+		''')
+		f.close()
 
 class Lister(object):
 	
@@ -20,6 +47,7 @@ class Lister(object):
 		self.listing(dir)
 		
 	def addDirEntryIn(self, category, dirEntry):
+		category = str(category)
 		if not category in self.files.keys():
 			self.files[category] = list()
 		self.files[category].append(dirEntry)
@@ -29,7 +57,6 @@ class Lister(object):
 			print "CATEGORY "+category
 			for entry in self.files[category]:
 				entry.prettyPrint()
-		
 	
 	def listing(self, directory, subdirname =""):
 		dirToWalk = os.path.join(directory,subdirname)
@@ -40,6 +67,10 @@ class Lister(object):
 					self.addDirEntryIn(subdirname, dirE)
 			if os.path.isdir(os.path.join(dirToWalk,filename)):
 				self.listing(directory, os.path.join(subdirname,filename))
+				
+	def genHTML(self):
+		htmlGen = HTMLGenerator(self.files)
+		htmlGen.genHTML()
 	
 	def listing2(self,directory, subdirname = ""):
 		subdirname = subdirname.replace(directory,"")
@@ -79,7 +110,7 @@ def main():
 		print "wrong argument size"
 	for arg in args:
 		lister = Lister(arg)
-		lister.prettyPrint()
+		lister.genHTML()
 
 #launch the program		
 if __name__ == "__main__":
