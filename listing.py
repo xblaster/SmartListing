@@ -6,9 +6,10 @@ import re
 
 """ Directory entry object
 """
+
 class DirEntry(object):
 	
-	toRemove = ["ma","me","mes","l'"]
+	toRemove = ["ma","me","mes","l'","un","une","le","la","les"]
 	
 	def __init__(self, dirname, filename):
 		
@@ -20,17 +21,24 @@ class DirEntry(object):
 		return filename.replace(".avi","")
 	
 	def transformToSortedName(self, filename):
-		res = filename
+		res = filename.capitalize()
 		for toReplace in  DirEntry.toRemove:
-			regexp= re.compile(toReplace+" ", re.IGNORECASE)
-			res = regexp.sub("",res)
+			if res.startswith(toReplace.capitalize()+" "):
+				res = res.replace(toReplace.capitalize()+" ","")
+			#regexp= re.compile("^"+toReplace+" ", re.IGNORECASE)
+			#res = regexp.sub("",res)
 		return res
 	
 	def getSortedName(self):
-		return self.sortedName.capitalize()	
+		return self.sortedName
 	
 	def toString(self):
 		return self.filename.capitalize()	
+		
+	def toHTML(self):
+		name = self.toString().replace(self.getSortedName(),"<span class=\"hl\">"+self.getSortedName()+"</span>")
+		
+		return "<span class=\"greyed\">"+name+"</span>"
 
 class HTMLGenerator(object):
 	def __init__(self, filesDict):
@@ -45,6 +53,10 @@ class HTMLGenerator(object):
 		<body>
 		<head>
 		<meta charset="utf-8">
+		<style type="text/css">
+			.greyed { color: #999 }
+			.hl { color: #000} 
+		</style>
 		</head>''')
 		
 		#sort entries
@@ -60,13 +72,13 @@ class HTMLGenerator(object):
 			sortedList = sorted(self.filesDict[category], key=lambda entry: entry.getSortedName()) 
 			
 			for entry in sortedList:
-				entryString = entry.getSortedName()
+				entryString = entry.getSortedName().capitalize()
 				
 				if (entryString[0]!= section):
 					section = entryString[0]
 					f.write(self.getSectionString(entryString[0]))
 				
-				f.write(entry.toString()+"<br/>")
+				f.write(entry.toHTML()+"<br/>")
 		
 		f.write('''</body>
 		</html>
