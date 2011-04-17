@@ -3,29 +3,53 @@ import os
 import sys
 import getopt
 
+""" Directory entry object
+"""
 class DirEntry(object):
 	def __init__(self, dirname, filename):
 		self.dirname = dirname
 		self.filename = filename
 	
 	def prettyPrint(self):
-		print self.dirname+ " " + self.filename	
+		print self.dirname + " @@ "+ self.filename	
 
-def listing(directory):
-	for dirname, dirnames, filenames in os.walk(directory):
-		for subdirname in dirnames:
-			#print os.path.join(dirname, subdirname)
-			listing(os.path.join(dirname,subdirname))
-			#for filename in filenames:
-				#if "avi" in filename:
-				#if true:
-					#print filename
-					#print os.path.join(dirname, filename)
+class Lister(object):
+	
+	def __init__(self, dir):
+		self.files = dict()
+		self.listing(dir)
+		
+	def addDirEntryIn(self, category, dirEntry):
+		if not category in self.files.keys():
+			self.files[category] = list()
+		self.files[category].append(dirEntry)
+		
+	def prettyPrint(self):
+		for category in self.files.keys():
+			print "CATEGORY "+category
+			for entry in self.files[category]:
+				entry.prettyPrint()
+		
+	
+	def listing(self,directory, subdirname = ""):
+		subdirname = subdirname.replace(directory,"")
+		#print "listing "+directory+" -- "+subdirname
+		dirToWalk = os.path.join(directory,subdirname)
+		for dirname, dirnames, filenames in os.walk(dirToWalk):
+			for subdirname in dirnames:
+				#print os.path.join(dirname, subdirname)
+				self.listing(directory,os.path.join(dirname, subdirname))
+				#for filename in filenames:
+					#if "avi" in filename:
+					#if true:
+						#print filename
+						#print os.path.join(dirname, filename)
 					
-		for filename in filenames:
-			if "avi" in filename:
-				dir = DirEntry(dirname, filename)
-				dir.prettyPrint()
+			for filename in filenames:
+				if "avi" in filename:
+					dir = DirEntry(subdirname, filename)
+					self.addDirEntryIn(subdirname, dir)
+					#dir.prettyPrint()
 				
 
 def main():
@@ -42,7 +66,8 @@ def main():
 	if len(args) !=1:
 		print "wrong argument size"
 	for arg in args:
-		listing(arg)
+		lister = Lister(arg)
+		lister.prettyPrint()
 
 #launch the program		
 if __name__ == "__main__":
