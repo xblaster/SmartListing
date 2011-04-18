@@ -9,19 +9,23 @@ import re
 
 class DirEntry(object):
 	
-	toRemove = ["ma","me","mes","l'","un","une","le","la","les"]
+	toRemove = ["ma","me","mes","l'","un","une","le","la","les","the"]
 	
 	def __init__(self, dirname, filename):
 		
 		self.dirname = dirname
-		self.filename = self.sanitizeFileName(filename)
+		self.filename = self.sanitizeFileName(dirname+" "+filename.capitalize().replace(dirname.capitalize(),""))
 		self.sortedName = self.transformToSortedName(self.filename)
 	
 	def sanitizeFileName(self,filename):
-		return filename.replace(".avi","")
+		return filename.replace(".avi","").strip()
 	
 	def transformToSortedName(self, filename):
 		res = filename.capitalize()
+		#specific case
+		#REAL DIRT HACK
+		res = res.replace("L'","L' ")
+		
 		for toReplace in  DirEntry.toRemove:
 			if res.startswith(toReplace.capitalize()+" "):
 				res = res.replace(toReplace.capitalize()+" ","")
@@ -69,7 +73,7 @@ class HTMLGenerator(object):
 		for category in items:
 			f.write("<h1>"+category+"</h1>")
 			
-			sortedList = sorted(self.filesDict[category], key=lambda entry: entry.getSortedName()) 
+			sortedList = sorted(self.filesDict[category], key=lambda entry: entry.getSortedName().capitalize()) 
 			
 			for entry in sortedList:
 				entryString = entry.getSortedName().capitalize()
@@ -92,6 +96,8 @@ class Lister(object):
 		self.listing(dir)
 		
 	def addDirEntryIn(self, category, dirEntry):
+		#for the moment no category
+		category =""
 		if not category in self.files.keys():
 			self.files[category] = list()
 		self.files[category].append(dirEntry)
