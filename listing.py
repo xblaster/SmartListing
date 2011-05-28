@@ -48,7 +48,7 @@ class DirEntry(object):
 
 class SerieEntry(DirEntry):
 	def __init__(self, dirname, filename, episodes):
-		dirname.replace("/"," - ")
+		dirname = dirname.replace("/"," - ")
 		super(SerieEntry, self).__init__(dirname, filename)
 		self.episodes = episodes
 
