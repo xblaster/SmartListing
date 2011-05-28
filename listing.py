@@ -7,9 +7,10 @@ import re
 """ Directory entry object
 """
 
+
 class DirEntry(object):
 	
-	toRemove = ["ma","me","mes","l'","un","une","le","la","les","the"]
+	toRemove = ["ma","me","mes","l'","un","une","le","la","les","the","mon","les"]
 	
 	def __init__(self, dirname, filename):
 		
@@ -43,6 +44,17 @@ class DirEntry(object):
 		name = self.toString().replace(self.getSortedName(),"<span class=\"hl\">"+self.getSortedName()+"</span>")
 		
 		return "<span class=\"greyed\">"+name+"</span>"
+
+
+class SerieEntry(DirEntry):
+	def __init__(self, dirname, filename, episodes):
+		dirname.replace("/"," - ")
+		super(SerieEntry, self).__init__(dirname, filename)
+		self.episodes = episodes
+
+	def toString(self):
+		return self.filename.capitalize()+" ("+str(self.episodes)+" episodes)"	
+
 
 class HTMLGenerator(object):
 	def __init__(self, filesDict):
@@ -108,42 +120,37 @@ class Lister(object):
 			for entry in self.files[category]:
 				entry.prettyPrint()
 	
+	def isSerieDir(self, directory, subdirname =""):
+		dirToWalk = os.path.join(directory,subdirname)
+		files = 0
+		for filename in os.listdir(dirToWalk):
+			if os.path.isdir(os.path.join(dirToWalk,filename)):
+				return False	
+			if os.path.isfile(os.path.join(dirToWalk,filename)):
+				files+=1
+		
+		if files > 3:
+			return True
+		return False
+	
 	def listing(self, directory, subdirname =""):
 		dirToWalk = os.path.join(directory,subdirname)
-		for filename in os.listdir(dirToWalk):
-			if os.path.isfile(os.path.join(dirToWalk,filename)):
-				if "avi" in filename:
-					dirE = DirEntry(subdirname, filename)
-					self.addDirEntryIn(subdirname, dirE)
-			if os.path.isdir(os.path.join(dirToWalk,filename)):
-				self.listing(directory, os.path.join(subdirname,filename))
+		if not self.isSerieDir(directory, subdirname):
+			for filename in os.listdir(dirToWalk):
+				if os.path.isfile(os.path.join(dirToWalk,filename)):
+					if "avi" in filename:
+						dirE = DirEntry(subdirname, filename)
+						self.addDirEntryIn(subdirname, dirE)
+				if os.path.isdir(os.path.join(dirToWalk,filename)):
+					self.listing(directory, os.path.join(subdirname,filename))
+		else:
+			serieE = SerieEntry(subdirname, "", len(os.listdir(dirToWalk)))
+			self.addDirEntryIn(subdirname, serieE )
 				
 	def genHTML(self):
 		htmlGen = HTMLGenerator(self.files)
 		htmlGen.genHTML()
 	
-	def listing2(self,directory, subdirname = ""):
-		subdirname = subdirname.replace(directory,"")
-		print "listing "+directory+" -- "+subdirname
-		dirToWalk = os.path.join(directory,subdirname)
-		for dirname, dirnames, filenames in os.walk(dirToWalk):
-			print dirname+" @ "+str(len(dirnames))+" @ "+str(len(filenames))
-			for subdirname in dirnames:
-				#print os.path.join(dirname, subdirname)
-				self.listing(directory,os.path.join(dirname, subdirname))
-				#for filename in filenames:
-					#if "avi" in filename:
-					#if true:
-						#print filename
-						#print os.path.join(dirname, filename)
-					
-			for filename in filenames:
-				#print filename
-				if "avi" in filename:
-					dir = DirEntry(subdirname, filename)
-					self.addDirEntryIn(subdirname, dir)
-					#dir.prettyPrint()
-				
 
 def main():
 	try:
